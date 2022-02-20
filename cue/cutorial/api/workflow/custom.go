@@ -18,15 +18,25 @@ tasks: {
 		foo: 1
 		hello: string
 	}
-	b: {
-		foo: 2
-	}
-	c: {
-		foo: a.foo * 3
-		goo: b.foo * 3
-	}
+	// b: {
+	// 	foo: 2
+	// }
+	// c: {
+	// 	foo: a.foo * 3
+	// 	goo: b.foo * 3
+	// }
+	// d: {
+	// 	goo: 10
+	// }
+	e: {
+		goo: {
+			foo: 20
+		}
+	}		
 }
 `
+
+var output cue.Value
 
 func main() {
 	var err error
@@ -44,23 +54,32 @@ func main() {
 		fmt.Println("Error:", value.Err())
 		return
 	}
-
 	// create the workflow which will build the task graph
+	// 再起的に Runner を生成
 	workflow := flow.New(cfg, value, TaskFactory)
-
+	fmt.Println("=== created the workflow ===")
 	// run our custom workflow
 	err = workflow.Run(context.Background())
 	if err != nil {
 		fmt.Println("Error:", err)
 		return
 	}
+	// print final value
+	fmt.Println("=== Print output ===")
+	fmt.Println(output)
 }
 
 // This function implements the Runner interface.
 // It parses Cue values, you will see all of them recursively
 func TaskFactory(val cue.Value) (flow.Runner, error) {
 	// You can see the recursive values with this
-	fmt.Println("TF: ", val)
+	//fmt.Println("TF: ", val)
+	if val.Path().String() == "tasks" {
+		output = output.Unify(val)
+		if output.Err() != nil {
+			fmt.Println("Error:", output.Err())
+		}
+	}
 
 	// Check that we have something that looks like a task
 	foo := val.Lookup("foo")
@@ -107,3 +126,6 @@ func (C *CustomTask) Run(t *flow.Task, pErr error) error {
 
 	return nil
 }
+
+// runLoopの中で、updateValue()で再度 initTasksが呼ばれている
+// すでに実行している Taskは skipされている t := c.keys[]

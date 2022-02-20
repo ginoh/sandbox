@@ -5,7 +5,6 @@ import (
 
 	"cuelang.org/go/cue/cuecontext"
 	"cuelang.org/go/cue/load"
-	"cuelang.org/go/pkg/encoding/yaml"
 )
 
 func main() {
@@ -41,12 +40,18 @@ func main() {
 			continue
 		}
 
-		y, err := yaml.Marshal(value)
-		if err != nil {
-			fmt.Println("Error during yaml marshal:", err)
-			continue
-		}
-		fmt.Println("yaml value:")
-		fmt.Println(y)
+		// y, err := yaml.Marshal(value)
+		// if err != nil {
+		// 	fmt.Println("Error during yaml marshal:", err)
+		// 	continue
+		// }
+		// fmt.Println("yaml value:")
+		// fmt.Println(y)
+
+		// b := load.Instances([]string{"test.cue"}, nil)
+		// v := ctx.BuildInstance(b[0])
+		// uv := value.Unify(v)
+		// fmt.Println("value:", uv)
+
 	}
 }
