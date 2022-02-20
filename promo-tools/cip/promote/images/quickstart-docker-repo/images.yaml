@@ -1,0 +1,4 @@
+- name: quickstart-image
+  dmap:
+    "sha256:e7389f0a331243818bc5ad057e8de0c797fe368f3076b173d6f573477bad3fc1":
+      ["tag1"]
