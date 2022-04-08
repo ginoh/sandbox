@@ -1,0 +1,23 @@
+version: "3.8"
+
+services:
+  app:
+    build: .
+    ports:
+      - 8080:8080
+    environment:
+      TZ: Asia/Tokyo
+      #MYSQL_DSN: user:password@tcp(127.0.0.1:3306)/sample?parseTime=true
+      MYSQL_DSN: user:password@tcp(db:3306)/sample?parseTime=true
+    depends_on:
+      - db
+  db:
+    image: mysql:5.7
+    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+    environment:
+      MYSQL_DATABASE: sample
+      MYSQL_USER: user
+      MYSQL_PASSWORD: password
+      MYSQL_ROOT_PASSWORD: root
+    ports:
+      - "3306:3306"
