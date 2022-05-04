@@ -1,0 +1,6 @@
+apiVersion: samplecontroller.ginoh.github.io/v1beta1
+kind: Foo
+metadata:
+  name: foo-sample
+spec:
+  # TODO(user): Add fields here

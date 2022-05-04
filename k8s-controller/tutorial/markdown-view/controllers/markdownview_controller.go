@@ -53,9 +53,6 @@ type MarkdownViewReconciler struct {
 //+kubebuilder:rbac:groups=view.ginoh.github.io,resources=markdownviews,verbs=get;list;watch;create;update;patch;delete
 //+kubebuilder:rbac:groups=view.ginoh.github.io,resources=markdownviews/status,verbs=get;update;patch
 //+kubebuilder:rbac:groups=view.ginoh.github.io,resources=markdownviews/finalizers,verbs=update
-//+kubebuilder:rbac:groups=view.ginoh.github.io,resources=markdownviews,verbs=get;list;watch;create;update;patch;delete
-//+kubebuilder:rbac:groups=view.ginoh.github.io,resources=markdownviews/status,verbs=get;update;patch
-//+kubebuilder:rbac:groups=view.ginoh.github.io,resources=markdownviews/finalizers,verbs=update
 //+kubebuilder:rbac:groups=core,resources=configmaps,verbs=get;list;watch;create;update;patch;delete
 //+kubebuilder:rbac:groups=apps,resources=deployments,verbs=get;list;watch;create;update;patch;delete
 //+kubebuilder:rbac:groups=core,resources=services,verbs=get;list;watch;create;update;patch;delete

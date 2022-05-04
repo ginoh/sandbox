@@ -83,10 +83,11 @@ minikube -p sandbox-controller --driver hyperkit start -n 3
 // IMG=XXXX make docker-build
 make docker-build
 
-minikube -p sandbox-controller image load controller:latest
+minikube -p sandbox-controller image load --overwrite controller:latest
 ```
 latest を使う場合は config/manager/manager.yaml  に imagePullPolicy を設定しておくとよい
 
+minikube で image load するときに、同じ名前の場合は `overwrite`を指定が必要？
 
 ```
 // CRD インストール
