@@ -1,0 +1,27 @@
+apiVersion: tekton.dev/v1beta1
+kind: Pipeline
+metadata:
+  name: hello-goodbye
+spec:
+  params:
+    - name: hello-message
+      type: string
+      default: Hello
+    - name: goodbye-message
+      type: string
+      default: GoodBye
+  tasks:
+    - name: hello
+      taskRef:
+        name: echo-message
+      params:
+        - name: message
+          value: $(params.hello-message)
+    - name: goodbye
+      taskRef:
+        name: echo-message
+      params:
+        - name: message
+          value: $(params.goodbye-message)
+      runAfter:
+        - hello
