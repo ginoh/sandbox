@@ -1,0 +1,17 @@
+apiVersion: argoproj.io/v1alpha1
+kind: AnalysisTemplate
+metadata:
+  name: pre-analysis-test
+spec:
+  args:
+    - name: service-name
+  metrics:
+    - name: webmetric
+      initialDelay: 30s
+      failureLimit: 2
+      interval: 10s
+      count: 3
+      successCondition: "true"
+      provider:
+        web:
+          url: "http://{{ args.service-name }}/color"
