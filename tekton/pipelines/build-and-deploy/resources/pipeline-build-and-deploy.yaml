@@ -1,0 +1,80 @@
+apiVersion: tekton.dev/v1beta1
+kind: Pipeline
+metadata:
+  name: build-and-deploy
+spec:
+  params:
+    - name: gitUrl
+      type: string
+    - name: gitRevision
+      type: string
+    - name: imageRegistryHostName
+      type: string
+    - name: imageShortName
+      type: string
+    # - name: imageName
+    #   type: string
+    - name: deployManifest
+      type: string
+  workspaces:
+    - name: shared
+  tasks:
+    - name: clone
+      taskRef:
+        name: git-clone
+      workspaces:
+        - name: output
+          workspace: shared
+          subPath: source
+      params:
+        - name: url
+          value: $(params.gitUrl)
+        - name: revision
+          value: $(params.gitRevision)
+    - name: build
+      taskRef:
+        name: buildkit-daemonless
+      runAfter:
+        - clone
+      workspaces:
+        - name: source
+          workspace: shared
+          subPath: source
+      params:
+        - name: imageRegistryHostName
+          value: $(params.imageRegistryHostName)
+        - name: imageShortName
+          value: $(params.imageShortName)
+        # - name: imageName
+        #   value: $(params.imageName)
+        - name: insecureRegistry
+          value: true
+    - name: configure-manifest
+      taskRef:
+        name: replace-image
+      runAfter:
+        - build
+      workspaces:
+        - name: source
+          workspace: shared
+          subPath: source
+        - name: output
+          workspace: shared
+          subPath: manifests
+      params:
+        - name: pathToManifest
+          value: $(params.deployManifest)
+        - name: targetYamlPath
+          value: .spec.template.spec.containers[0].image
+        - name: imageName
+          #value: $(tasks.build.results.imageNameWithTag)
+          value: localhost:5000/$(tasks.build.results.imageShortNameWithTag)
+    - name: deploy
+      taskRef:
+        name: deploy-using-kubectl
+      runAfter:
+        - configure-manifest
+      workspaces:
+        - name: manifests
+          workspace: shared
+          subPath: manifests

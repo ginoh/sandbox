@@ -1,21 +1,21 @@
 apiVersion: tekton.dev/v1beta1
 kind: Task
 metadata:
-  name: echo-message
+  name: echo
 spec:
   params:
     - name: message
       description: echo this message
       default: Hello, Tekton Task
   steps:
-    - name: echo-1
+    - name: echo
       image: ubuntu
       command:
         - echo
       args:
         - $(params.message)
-    - name: echo-2
-      image: ubuntu
-      script: |
-        #!/bin/sh
-        echo "$(params.message)"
+    # - name: echo
+    #   image: ubuntu
+    #   script: |
+    #     #!/bin/sh
+    #     echo "$(params.message)"

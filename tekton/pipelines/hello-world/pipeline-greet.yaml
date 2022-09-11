@@ -1,0 +1,24 @@
+apiVersion: tekton.dev/v1beta1
+kind: Pipeline
+metadata:
+  name: greet
+spec:
+  params:
+    - name: name
+      type: string
+      default: taro
+  tasks:
+    - name: hello
+      taskRef:
+        name: echo
+      params:
+        - name: message
+          value: hello, $(params.name)
+    - name: goodbye
+      taskRef:
+        name: echo
+      params:
+        - name: message
+          value: goodby, $(params.name)
+      runAfter:
+        - hello

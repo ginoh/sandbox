@@ -1,0 +1,32 @@
+apiVersion: tekton.dev/v1beta1
+kind: PipelineRun
+metadata:
+  generateName: build-and-deploy-run-
+spec:
+  params:
+    - name: gitRevision
+      value: main
+    - name: gitUrl
+      value: https://github.com/ginoh/sample-hello-world.git
+    - name: imageRegistryHostName
+      value: registry.kube-system.svc.cluster.local
+    - name: imageShortName
+      value: samples/hello-world
+    # - name: imageName
+    #   value: registry.kube-system.svc.cluster.local/samples/hello-world
+    - name: deployManifest
+      value: kubernetes/deployment.yaml
+  pipelineRef:
+    name: build-and-deploy
+  taskRunSpecs:
+    - pipelineTaskName: deploy
+      taskServiceAccountName: kubectl-apply
+  workspaces:
+    - name: shared
+      volumeClaimTemplate:
+        spec:
+          accessModes:
+            - ReadWriteMany
+          resources:
+            requests:
+              storage: 1Gi

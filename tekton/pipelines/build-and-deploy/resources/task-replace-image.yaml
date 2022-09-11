@@ -1,0 +1,29 @@
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: replace-image
+spec:
+  workspaces:
+    - name: source
+    - name: output
+  params:
+    - name: pathToManifest
+      type: string
+      description: Path to the manifest
+    - name: targetYamlPath
+      type: string
+      description: |
+        The path to target key to replace in the yaml manifest (arg to yq)
+    - name: imageName
+      type: string
+      description: The name of the image
+  steps:
+    - name: replace
+      image: mikefarah/yq
+      script: |
+        #!/usr/bin/env sh
+        set -xe
+        pathToManifest=$(workspaces.source.path)/$(params.pathToManifest)
+        output=$(workspaces.output.path)/$(basename $pathToManifest)
+
+        yq '$(params.targetYamlPath) = "$(params.imageName)"' $pathToManifest | tee $output
