@@ -1,0 +1,21 @@
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: deploy-using-kubectl
+spec:
+  workspaces:
+    - name: manifests
+  params:
+    - name: path
+      type: string
+      description: Path to the manifest to apply
+      default: ""
+  steps:
+    - name: apply-resource
+      image: bitnami/kubectl
+      command:
+        - kubectl
+      args:
+        - apply
+        - -f
+        - $(workspaces.manifests.path)/$(params.path)
