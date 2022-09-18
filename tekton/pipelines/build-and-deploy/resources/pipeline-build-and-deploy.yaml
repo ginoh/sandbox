@@ -8,18 +8,16 @@ spec:
       type: string
     - name: gitRevision
       type: string
-    - name: imageRegistryHostName
+    - name: containerRegistryName
       type: string
-    - name: imageShortName
+    - name: containerRepositoryName
       type: string
-    # - name: imageName
-    #   type: string
     - name: deployManifest
       type: string
   workspaces:
     - name: shared
   tasks:
-    - name: clone
+    - name: git-clone
       taskRef:
         name: git-clone
       workspaces:
@@ -31,29 +29,40 @@ spec:
           value: $(params.gitUrl)
         - name: revision
           value: $(params.gitRevision)
-    - name: build
+    - name: build-and-push
       taskRef:
         name: buildkit-daemonless
       runAfter:
-        - clone
+        - git-clone
       workspaces:
         - name: source
           workspace: shared
           subPath: source
+        - name: credentials
+          workspace: shared
+          subPath: credentials
       params:
-        - name: imageRegistryHostName
-          value: $(params.imageRegistryHostName)
-        - name: imageShortName
-          value: $(params.imageShortName)
-        # - name: imageName
-        #   value: $(params.imageName)
-        - name: insecureRegistry
-          value: true
+        - name: containerRegistryName
+          value: $(params.containerRegistryName)
+        - name: containerRepositoryName
+          value: $(params.containerRepositoryName)
+    - name: replace-registry-name
+      taskRef:
+        name: bash-replace-string
+      runAfter:
+        - build-and-push
+      params:
+        - name: source
+          value: $(tasks.build-and-push.results.imageNameWithTag)
+        - name: target
+          value: $(params.containerRegistryName)
+        - name: replace
+          value: localhost:5000
     - name: configure-manifest
       taskRef:
         name: replace-image
       runAfter:
-        - build
+        - replace-registry-name
       workspaces:
         - name: source
           workspace: shared
@@ -67,8 +76,7 @@ spec:
         - name: targetYamlPath
           value: .spec.template.spec.containers[0].image
         - name: imageName
-          #value: $(tasks.build.results.imageNameWithTag)
-          value: localhost:5000/$(tasks.build.results.imageShortNameWithTag)
+          value: $(tasks.replace-registry-name.results.output)
     - name: deploy
       taskRef:
         name: deploy-using-kubectl

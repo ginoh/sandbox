@@ -10,31 +10,27 @@ spec:
       description: The name with tag of the image to build (e.g. image:latest)
     - name: imageNameWithDigest
       description: The name with digest of the image to build (e.g. image:@sha256xxx...)
-    - name: imageShortNameWithTag
-      description: The name with tag of the image without registry host to build (for Dev)
   workspaces:
     - name: source
+    - name: credentials
   params:
     - name: pathToDockerfile
       description: The path to the Dockerfile
       default: Dockerfile
-    - name: imageRegistryHostName
-      description: The HostName of the imageRegistry (e.g. myregistry:5000)
+    - name: containerRegistryName
+      description: The Host Name of the Container Registry (e.g. myregistry:5000)
       default: "registry-1.docker.io"
-    - name: imageShortName
-      description: The name of the image without registry host to build
+    - name: containerRepositoryName
+      description: The name of the repository (e.g. samples/hello-world)
     - name: imageTag
       description: The tag of the image to build
       default: latest
     - name: BUILDKIT_IMAGE
       description: The name of the BuildKit image
       default: moby/buildkit:master-rootless
-    - name: insecureRegistry
-      description: The flag to use insecure HTTP registry
-      default: false
     - name: credentialDirectory
       description: The directory name placed credential to push image
-      default: ~/.docker
+      default: $(workspaces.credentials.path)
   steps:
     - name: build-and-push
       image: $(params.BUILDKIT_IMAGE)
@@ -55,13 +51,17 @@ spec:
           "--local",
           "dockerfile=.",
           "--output",
-          "type=image,name=$(params.imageRegistryHostName)/$(params.imageShortName):$(params.imageTag),push=true,registry.insecure=$(params.insecureRegistry)",
+          # "type=image,name=$(params.containerRegistryName)/$(params.containerRepositoryName):$(params.imageTag),push=true",
+          # "--export-cache",
+          # "type=registry,ref=$(params.containerRegistryName)/$(params.containerRepositoryName):buildcache",
+          # "--import-cache",
+          # "type=registry,ref=$(params.containerRegistryName)/$(params.containerRepositoryName):buildcache",
+          # insecure Registry setting
+          "type=image,name=$(params.containerRegistryName)/$(params.containerRepositoryName):$(params.imageTag),push=true,registry.insecure=true",
           "--export-cache",
-          #"type=registry,ref=$(params.imageRegistryHostName)/$(params.imageShortName):buildcache",
           "type=inline",
           "--import-cache",
-          #"type=registry,ref=$(params.imageRegistryHostName)/$(params.imageShortName):buildcache",
-          "type=registry,ref=$(params.imageRegistryHostName)/$(params.imageShortName)",
+          "type=registry,ref=$(params.containerRegistryName)/$(params.containerRepositoryName)",
           "--metadata-file",
           "metadata.json",
         ]
@@ -78,8 +78,7 @@ spec:
       script: |
         digest=`jq -r '.["containerimage.digest"]' $(workspaces.source.path)/metadata.json`
         echo "imageNameWithTag:"
-        echo -n $(params.imageRegistryHostName)/$(params.imageShortName):$(params.imageTag) | tee $(results.imageNameWithTag.path)
+        echo -n $(params.containerRegistryName)/$(params.containerRepositoryName):$(params.imageTag) | tee $(results.imageNameWithTag.path)
+        echo ""
         echo "imageNameWithDigest:"
-        echo -n $(params.imageRegistryHostName)/$(params.imageShortName)@$digest | tee $(results.imageNameWithDigest.path)
-        echo "imageShortNameWithTag:"
-        echo -n $(params.imageShortName):$(params.imageTag) | tee $(results.imageShortNameWithTag.path)
+        echo -n $(params.containerRegistryName)/$(params.containerRepositoryName)@${digest} | tee $(results.imageNameWithDigest.path)

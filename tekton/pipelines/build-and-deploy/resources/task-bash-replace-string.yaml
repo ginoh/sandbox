@@ -1,0 +1,23 @@
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: bash-replace-string
+spec:
+  results:
+    - name: output
+      description: The output result after string replacement
+  params:
+    - name: source
+      type: string
+    - name: target
+      type: string
+    - name: replace
+      type: string
+  steps:
+    - name: replace
+      image: bash:latest
+      script: |
+        #!/usr/bin/env bash
+        set -e
+        source=$(params.source)
+        echo -n ${source/$(params.target)/$(params.replace)} | tee $(results.output.path)
