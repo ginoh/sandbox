@@ -51,17 +51,17 @@ spec:
           "--local",
           "dockerfile=.",
           "--output",
-          # "type=image,name=$(params.containerRegistryName)/$(params.containerRepositoryName):$(params.imageTag),push=true",
-          # "--export-cache",
-          # "type=registry,ref=$(params.containerRegistryName)/$(params.containerRepositoryName):buildcache",
-          # "--import-cache",
-          # "type=registry,ref=$(params.containerRegistryName)/$(params.containerRepositoryName):buildcache",
-          # insecure Registry setting
-          "type=image,name=$(params.containerRegistryName)/$(params.containerRepositoryName):$(params.imageTag),push=true,registry.insecure=true",
+          "type=image,name=$(params.containerRegistryName)/$(params.containerRepositoryName):$(params.imageTag),push=true",
           "--export-cache",
-          "type=inline",
+          "type=registry,ref=$(params.containerRegistryName)/$(params.containerRepositoryName):buildcache",
           "--import-cache",
-          "type=registry,ref=$(params.containerRegistryName)/$(params.containerRepositoryName)",
+          "type=registry,ref=$(params.containerRegistryName)/$(params.containerRepositoryName):buildcache",
+          # insecure Registry setting
+          #"type=image,name=$(params.containerRegistryName)/$(params.containerRepositoryName):$(params.imageTag),push=true,registry.insecure=true",
+          #"--export-cache",
+          #"type=inline",
+          #"--import-cache",
+          #"type=registry,ref=$(params.containerRegistryName)/$(params.containerRepositoryName)",
           "--metadata-file",
           "metadata.json",
         ]
@@ -81,4 +81,4 @@ spec:
         echo -n $(params.containerRegistryName)/$(params.containerRepositoryName):$(params.imageTag) | tee $(results.imageNameWithTag.path)
         echo ""
         echo "imageNameWithDigest:"
-        echo -n $(params.containerRegistryName)/$(params.containerRepositoryName)@${digest} | tee $(results.imageNameWithDigest.path)
+        echo -n $(params.containerRegistryName)/$(params.containerRepositoryName)@$digest | tee $(results.imageNameWithDigest.path)

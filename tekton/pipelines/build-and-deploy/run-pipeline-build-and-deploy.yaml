@@ -8,12 +8,10 @@ spec:
       value: main
     - name: gitUrl
       value: https://github.com/ginoh/sample-hello-world.git
-    - name: imageRegistryHostName
+    - name: containerRegistryName
       value: registry.kube-system.svc.cluster.local
-    - name: imageShortName
+    - name: containerRepositoryName
       value: samples/hello-world
-    # - name: imageName
-    #   value: registry.kube-system.svc.cluster.local/samples/hello-world
     - name: deployManifest
       value: kubernetes/deployment.yaml
   pipelineRef:

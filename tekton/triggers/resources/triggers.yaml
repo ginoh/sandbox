@@ -1,0 +1,99 @@
+apiVersion: triggers.tekton.dev/v1alpha1
+kind: TriggerTemplate
+metadata:
+  name: getting-started-triggertemplate
+  namespace: getting-started
+spec:
+  params:
+    - name: gitUrl
+      description: The git repository url
+    - name: gitRevision
+      description: The git revision
+      default: main
+    - name: gcpServiceAccountSecretName
+      description: The secret name of Google Service Account
+    - name: containerRegistryName
+      description: Container Registry Host Name (e.g. gcr.io, us-central1-docker.pkg.dev)
+    - name: containerRepositoryName
+      description: The name of the repository (e.g. samples/hello-world)
+    - name: imageTag
+      description: The tag of the image to build
+      default: latest
+    - name: deployManifest
+      description: The manifest path to deploy
+    - name: namespace
+      description: The namespace to create the resources
+  resourcetemplates:
+    - apiVersion: tekton.dev/v1beta1
+      kind: PipelineRun
+      metadata:
+        generateName: run-getting-started-
+        namespace: $(tt.params.namespace)
+      spec:
+        serviceAccountName: tekton-triggers-example-sa
+        pipelineRef:
+          name: getting-started
+        taskRunSpecs:
+          - pipelineTaskName: deploy
+            taskServiceAccountName: kubectl-apply
+        params:
+          - name: gitUrl
+            value: $(tt.params.gitUrl)
+          - name: gitRevision
+            value: $(tt.params.gitRevision)
+          - name: gcpServiceAccountSecretName
+            value: $(tt.params.gcpServiceAccountSecretName)
+          - name: containerRegistryName
+            value: $(tt.params.containerRegistryName)
+          - name: containerRepositoryName
+            value: $(tt.params.containerRepositoryName)
+          - name: imageTag
+            value: $(tt.params.imageTag)
+          - name: deployManifest
+            value: $(tt.params.deployManifest)
+        workspaces:
+          - name: shared
+            volumeClaimTemplate:
+              spec:
+                accessModes:
+                  - ReadWriteMany
+                resources:
+                  requests:
+                    storage: 1Gi
+---
+apiVersion: triggers.tekton.dev/v1alpha1
+kind: TriggerBinding
+metadata:
+  name: getting-started-pipelinebinding
+  namespace: getting-started
+spec:
+  params:
+    - name: gitUrl
+      value: "https://github.com/$(body.repository.full_name)"
+    - name: gitRevision
+      value: $(body.head_commit.id)
+    - name: gcpServiceAccountSecretName
+      value: gcp-service-account
+    - name: containerRegistryName
+      value: asia-northeast1-docker.pkg.dev
+    - name: containerRepositoryName
+      value: development-286509/sandbox/samples/hello-world
+    - name: imageTag
+      value: latest
+    - name: deployManifest
+      value: kubernetes/deployment.yaml
+    - name: namespace
+      value: getting-started
+---
+apiVersion: triggers.tekton.dev/v1alpha1
+kind: EventListener
+metadata:
+  name: getting-started-listener
+  namespace: getting-started
+spec:
+  serviceAccountName: tekton-triggers-example-sa
+  triggers:
+    - bindings:
+        - ref: getting-started-pipelinebinding
+      template:
+        ref: getting-started-triggertemplate
