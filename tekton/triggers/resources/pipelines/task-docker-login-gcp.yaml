@@ -1,0 +1,54 @@
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: docker-login-gcp
+spec:
+  description: >-
+    Docker login to push image to Google Artifact Registry Docker Repository
+  workspaces:
+    - name: credentials
+  params:
+    - name: containerRegistryName
+      type: string
+      description: Google Container Registry Host Name (e.g. gcr.io, us-central1-docker.pkg.dev)
+    - name: gcpServiceAccountSecretName
+      type: string
+      description: The secret name of Google Service Account
+  steps:
+    # https://cloud.google.com/artifact-registry/docs/docker/authentication#token
+    - name: print-access-token
+      image: gcr.io/google.com/cloudsdktool/cloud-sdk:slim
+      script: |
+        #! /usr/bin/env bash
+        gcloud auth activate-service-account --key-file /tmp/gcp-credentials/account.json
+        gcloud auth print-access-token > /tmp/internal-shared/gcp-access-token.txt
+      volumeMounts:
+        - name: gcp-service-account
+          mountPath: /tmp/gcp-credentials
+          readOnly: true
+        - name: internal-shared
+          mountPath: /tmp/internal-shared
+    - name: docker-login
+      image: docker
+      script: |
+        #! /usr/bin/env sh
+        password=$(cat /tmp/internal-shared/gcp-access-token.txt)
+        docker login -u oauth2accesstoken -p ${password} https://$(params.containerRegistryName)
+      env:
+        - name: DOCKER_CONFIG
+          value: $(workspaces.credentials.path)
+      volumeMounts:
+        - name: internal-shared
+          mountPath: /tmp/internal-shared
+      # workaround. rootless buildkit builds image as non-root user (uid=1000)
+      securityContext:
+        runAsUser: 1000
+  volumes:
+    - name: gcp-service-account
+      secret:
+        secretName: $(params.gcpServiceAccountSecretName)
+        items:
+          - key: service-account
+            path: account.json
+    - name: internal-shared
+      emptyDir: {}

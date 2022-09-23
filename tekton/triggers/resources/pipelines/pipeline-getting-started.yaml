@@ -1,0 +1,97 @@
+apiVersion: tekton.dev/v1beta1
+kind: Pipeline
+metadata:
+  name: getting-started
+  namespace: getting-started
+spec:
+  params:
+    - name: gitUrl
+      type: string
+    - name: gitRevision
+      type: string
+    - name: gcpServiceAccountSecretName
+      type: string
+    - name: containerRegistryName
+      type: string
+    - name: containerRepositoryName
+      type: string
+    - name: imageTag
+      type: string
+      default: latest
+    - name: deployManifest
+      type: string
+  workspaces:
+    - name: shared
+  tasks:
+    - name: git-clone
+      taskRef:
+        name: git-clone
+      workspaces:
+        - name: output
+          workspace: shared
+          subPath: source
+      params:
+        - name: url
+          value: $(params.gitUrl)
+        - name: revision
+          value: $(params.gitRevision)
+    - name: docker-login-gcp
+      taskRef:
+        name: docker-login-gcp
+      workspaces:
+        - name: credentials
+          workspace: shared
+          subPath: credentials
+      params:
+        - name: containerRegistryName
+          value: $(params.containerRegistryName)
+        - name: gcpServiceAccountSecretName
+          value: $(params.gcpServiceAccountSecretName)
+    - name: build-and-push
+      taskRef:
+        name: buildkit-daemonless
+      runAfter:
+        - git-clone
+        - docker-login-gcp
+      workspaces:
+        - name: source
+          workspace: shared
+          subPath: source
+        - name: credentials
+          workspace: shared
+          subPath: credentials
+      params:
+        - name: containerRegistryName
+          value: $(params.containerRegistryName)
+        - name: containerRepositoryName
+          value: $(params.containerRepositoryName)
+        - name: imageTag
+          value: $(params.imageTag)
+    - name: configure-manifest
+      taskRef:
+        name: replace-image
+      runAfter:
+        - build-and-push
+      workspaces:
+        - name: source
+          workspace: shared
+          subPath: source
+        - name: output
+          workspace: shared
+          subPath: manifests
+      params:
+        - name: pathToManifest
+          value: $(params.deployManifest)
+        - name: targetYamlPath
+          value: .spec.template.spec.containers[0].image
+        - name: imageName
+          value: $(tasks.build-and-push.results.imageNameWithTag)
+    - name: deploy
+      taskRef:
+        name: deploy-using-kubectl
+      runAfter:
+        - configure-manifest
+      workspaces:
+        - name: manifests
+          workspace: shared
+          subPath: manifests
