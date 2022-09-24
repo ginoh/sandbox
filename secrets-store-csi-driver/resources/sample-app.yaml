@@ -1,0 +1,29 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: sample-app
+  namespace: sscd-test
+  # https://minikube.sigs.k8s.io/docs/handbook/addons/gcp-auth/
+  labels:
+    gcp-auth-skip-secret: "true"
+spec:
+  containers:
+    - name: envoy
+      image: envoyproxy/envoy-dev:latest
+      imagePullPolicy: IfNotPresent
+      resources:
+        requests:
+          cpu: 100m
+      volumeMounts:
+        - name: secrets-store-sample
+          mountPath: "/var/secrets"
+
+  volumes:
+    - name: secrets-store-sample
+      csi:
+        driver: secrets-store.csi.k8s.io
+        readOnly: true
+        volumeAttributes:
+          secretProviderClass: sample-app-secrets
+        # nodePublishSecretRef:
+        #   name: secrets-store-creds
