@@ -3,7 +3,7 @@
 
 ### 実装メモ
 
-### 初期化と　API追加
+### 初期化と API追加
 ```
 kb init --domain ginoh.github.io --repo github.com/ginoh/foo-controller
 kb create api --group samplecontroller --version v1alpha1 --kind Foo
@@ -23,7 +23,7 @@ deployment の replicasが pointer で定義されている？
 Reconcile 処理が動作するのは Event が発生し Request が WorkQueue に入ったタイミング
 
 * Reconcileの実装で リソースのGetがエラーの場合に errors.IsNotFound() を利用するか、client.IgnoreNotFound() を利用するかは
-　NotFoundとそうでないエラーでやりたい処理が違う時に使い分けるとよさそう
+NotFoundとそうでないエラーでやりたい処理が違う時に使い分けるとよさそう
 
 * CR内で別リソースを指定していて、依存関係を持つような場合、CRの指定を変更すると元々依存関係があった古いリソースがゴミとして残るため、クリーンアップ処理をちゃんとしておく
 
@@ -40,7 +40,7 @@ https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.11.2/pkg/controller/control
 ```
 kubebuilder create webhook --group samplecontroller --version v1alpha1 --kind Foo --programmatic-validation --defaulting
 ```
-* 自動生成　では webhookの実装は api/<version> の下にコードが生成される
+* 自動生成 では webhookの実装は api/<version> の下にコードが生成される
 * デフォルト値設定の mutating は Default を実装
 * validatingは validateCreate, validateUpdate, vaidateDelete の実装
 
@@ -62,7 +62,7 @@ deploy 後、sampleをapply => v1beta1 で get して確認する
 kc apply -f config/samples/samplecontroller_v1alpha1_foo.yaml
 ```
 
-conversion webhook に問題があると　get できなくなるっぽい
+conversion webhook に問題があると get できなくなるっぽい
 ```
 Error from server: conversion webhook for samplecontroller.ginoh.github.io/v1alpha1, Kind=Foo failed: the server could not find the requested resource
 ```

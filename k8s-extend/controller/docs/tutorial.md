@@ -141,7 +141,7 @@ Reconcile処理はデフォルトでは1秒間に10回以上実行されない�
  * Owns => 生成するリソースに何らかの変更が発生した際にReconcileが呼び出されるようにな
 
 
-Reconciler に Recorder を追加
+main のReconciler に Recorder を追加
 => https://zoetrope.github.io/kubebuilder-training/controller-runtime/manager.html を参考に mainの処理,manifest更新などをする
 
 #### リソースの削除
