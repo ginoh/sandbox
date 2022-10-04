@@ -1,4 +1,4 @@
-### 参考
+## 参考
 
 kubernetes-sigs/secrets-store-csi-driver
 https://github.com/kubernetes-sigs/secrets-store-csi-driver
@@ -7,7 +7,7 @@ docs
 https://secrets-store-csi-driver.sigs.k8s.io/
 
 
-### Concept
+## Concept
 https://secrets-store-csi-driver.sigs.k8s.io/concepts.html
 
 * Pod の start/restart 時に kubelet の CSI Driver が、SecretProviderClass CR 内で指定した外部の Secret Store から secret コンテンツを取得するために、gRPC を利用して Secrets Store CSI Provider 通信する
@@ -45,15 +45,15 @@ CRD
 
 SecretProviderClass は、ポッドと同じ名前空間に作成する必要がある。
 
-### Getting Started
+## Getting Started
 
-クラスタ準備 (今回は minikube を利用)
+### クラスタ準備 (今回は minikube を利用)
 ```
 minikube -p secrets-store-csi start --driver hyperkit --insecure-registry "10.0.0.0/24"
 ```
 profile 名が secrets-store-csi だと kube-system の pod がわかりづらくなってしまった
 
-Secrets Store CSI Driver のインストール
+### Secrets Store CSI Driver のインストール
 ```
 kc -n kube-system get pods
 NAME                                        READY   STATUS    RESTARTS       AGE
@@ -84,12 +84,12 @@ secretproviderclasses.secrets-store.csi.x-k8s.io            2022-08-20T08:51:17Z
 secretproviderclasspodstatuses.secrets-store.csi.x-k8s.io   2022-08-20T08:51:17Z
 ```
 
-Provider のインストール
+### Provider のインストール
 
 今回は GCP Secret Manager を使うことにする
 https://github.com/GoogleCloudPlatform/secrets-store-csi-driver-provider-gcp
 
-ただし、今回は minikube を利用するので、workload identity は設定はせずに以下のドキュメントを参考にして、
+minikube を利用するので、workload identity ではなく、以下のドキュメントに記載されている
 `provider-adc` or `nodePublishSecretRef` を利用する
 https://github.com/GoogleCloudPlatform/secrets-store-csi-driver-provider-gcp/blob/main/docs/authentication.md
 
@@ -107,7 +107,11 @@ kubectl create ns sscd-provider-gcp
 kubectl apply -f provider-gcp-plugin-adc.yaml
 ```
 
-サンプルの実行
+* 外部の Secret Store へのアクセスは provider が行うので provider が権限を持っている必要がある
+  * SA の Secret をマウントして利用するなどの場合は、provider に設定する
+
+
+### サンプルの実行
 
 `provider-adc` のための minikube 設定
 https://minikube.sigs.k8s.io/docs/handbook/addons/gcp-auth/
@@ -126,12 +130,58 @@ describe、provider 側のログの確認などをする
 
 delete に時間がかかるようになる？
 
-memo
-* 外部の Secret Store へのアクセスは provider が行うので provider が権限を持っている必要がある
-  * SA をマウントして利用するなどの場合は、provider に設定する
+## GCP provider
+
+### nodePublishSecret
+
+TBD
+
+* pod に `nodePublishSecret` を設定すると、Secret 情報が Provider に渡され、Provider が外部の Store にアクセスする
+  * `nodePublishSecret` と `provider-adc` が両方設定されていると エラーになり、Secret のマウントはされない
+
+### Workload Identity
+
+GKEクラスタ作成
+```
+$ gcloud container clusters create <cluster name> \
+--create-subnetwork name=<subnet name> \
+--enable-master-authorized-networks \
+--enable-ip-alias \
+--enable-private-nodes \
+--master-ipv4-cidr=172.16.16.0/28 \
+--preemptible \
+--num-nodes 3 \
+--machine-type n1-standard-1 \
+--zone asia-northeast1-b \
+--workload-pool <$PROJECT_ID>.svc.id.goog
+
+$ gcloud container clusters update <cluster name> \
+--enable-master-authorized-networks \
+--master-authorized-networks <cidr> \
+--zone asia-northeast1-b
+```
+
+Workload Identity 設定
+```
+$ gcloud iam service-accounts create secrets-store-csi
+
+$ gcloud iam service-accounts add-iam-policy-binding \
+--role roles/iam.workloadIdentityUser \
+--member "serviceAccount:<$PROJECT_ID>.svc.id.goog[sscd-test/sscd-sa]" \
+secrets-store-csi@<$PROJECT_ID>.iam.gserviceaccount.com
+```
+
+driver install
+```
+helm install csi-secrets-store secrets-store-csi-driver/secrets-store-csi-driver --namespace kube-system
+```
+
+provider install
+```
+kubectl apply -f https://raw.githubusercontent.com/GoogleCloudPlatform/secrets-store-csi-driver-provider-gcp/main/deploy/provider-gcp-plugin.yaml
+```
+
 
 * (おそらく) Workload Identityの場合は、Secret を利用する Pod に ServiceAccount を設定すると、Service Account Token
 が Provider にフォワードされ、Provider が Secret を利用する Pod になりすまして 外部の Store にアクセスする
 
-* pod に `nodePublishSecret` を設定すると、Secret 情報が Provider に渡され、Provider が外部の Store にアクセスする
-  * `nodePublishSecret` と `provider-adc` が両方設定されていると エラーになり、Secret のマウントはされない
