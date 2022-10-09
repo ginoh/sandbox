@@ -3,9 +3,6 @@
 // k8s cluster
 minikube -p sample-bar-contrller start -n 3 --driver hyperkit --insecure-registry "10.0.0.0/24"
 
-// cert-manager
-kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.9.1/cert-manager.yaml
-
 curl -L -o kubebuilder https://go.kubebuilder.io/dl/latest/$(go env GOOS)/$(go env GOARCH)
 // 自分の好きなところへ移動
 chmod +x kubebuilder && mv kubebuilder ~/bin/
@@ -157,3 +154,67 @@ controller のコンポーネントの主な役割
 
 
 ### webhook 実装
+
+kubernetes には Admission Controllers という仕組みがあり、k8s API へのリクエストをインターセプトし、Webhook サーバでリクエストに対し処理をすることができる
+
+Admission Controller には２種類の Webhook がある
+* Mutation Webhook ・・・ APIリクエストを編集可能
+* Validation Webhook・・・APIリクエストの内容を検証する
+
+組み込みの Webhook の他に、独自に実装することも可能。今回はカスタムリソースのための Webhook を実装する。
+
+
+webhook のコード生成
+```
+kubebuilder create webhook --group samplecontroller --version v1alpha1 --kind Bar --programmatic-validation --defaulting
+```
+--defaulting が Mutating、--programmatic-validation が Validating Webhook を利用する指定
+
+コード変更・生成されたのは以下
+```
+$ git status
+Changes not staged for commit:
+  (use "git add <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+        modified:   PROJECT
+        modified:   api/v1alpha1/zz_generated.deepcopy.go
+        modified:   go.mod
+        modified:   main.go
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+        api/v1alpha1/bar_webhook.go
+        api/v1alpha1/webhook_suite_test.go
+        config/certmanager/
+        config/default/manager_webhook_patch.yaml
+        config/default/webhookcainjection_patch.yaml
+        config/webhook/
+```
+
+* Webhook の実装雛形は api ディレクトリ以下にできる
+* Admission Webhook を利用するための証明書をcert-manager を利用して発行ためのカスタムリソースが生成される
+  * cert-manager を利用しないといけないわけではない
+* webhook、cert-manager を利用するために 以下のファイルのコメントアウトを外す必要がある
+  * config/default/kustomization.yaml
+  * config/crd/kustomization.yaml
+* main.go に初期化用コードが追加されている
+
+webhook の実装
+* webhook のマニフェスト生成のための marker が存在する
+  * marker の CRD の名前は
+* Golang の型エイリアスが使われている
+* Default()、ValidateCreate()、ValidateUpdate()、ValidateDelete() を実装する
+* field パッケージを利用するとエラーをわかりやすいものにできる
+  * 複数の validation エラーを保持したいときは、field.ErrorList がよさそう
+
+webhook の実装仕様
+* replicas が指定されてない場合はデフォルトで 1 を設定
+* deploymentName が 253文字を超過していたら validate エラーにする
+
+cert-manager をインストールしておく
+```
+kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.9.1/cert-manager.yaml
+```
+### 既存リソースの Admission Webhook
+
+https://tech.griphone.co.jp/2021/12/12/kubebuilder-coreresource-webhook/
