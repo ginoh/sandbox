@@ -152,6 +152,7 @@ func (r *BarReconciler) cleanupOwnerResources(ctx context.Context, bar *sampleco
 		client.MatchingFields{deploymentOwnerKey: bar.Name}); err != nil {
 		return err
 	}
+
 	for _, deployment := range deployments.Items {
 		if deployment.Name == bar.Spec.DeploymentName {
 			continue

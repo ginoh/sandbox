@@ -1,3 +1,9 @@
+## 参考
+* 実践入門 Kubernetes カステムコントローラーへの道 (書籍)
+* [つくって学ぶKubebuilder](https://zoetrope.github.io/kubebuilder-training/)
+* [The Kubebuilder Book](https://book.kubebuilder.io/)
+
+
 ## 準備 (kubebuilder のアップデートしておく)
 ```
 // k8s cluster
@@ -133,7 +139,7 @@ client-go のコンポーネントの役割
 1 の処理の関連コンポーネントとして以下がある
 * Reflector ・・・k8s API Server に対してオブジェクトを監視
 * Delta FIFO・・・Reflector が Event を検知すると更新されたオブジェクトが入る
-* Informor・・・FIFO からオブジェクトを pop して、indexer に追加
+* Informer・・・FIFO からオブジェクトを pop して、indexer に追加
 * Indexer・・・オブジェクトを Store に保存
 * Store (in-memory-cache)・・・オブジェクトが保存されている
 * Lister・・・オブジェクトのデータ取得は、Lister が Store からデータ取得して行われる (indexer経由)
@@ -142,16 +148,39 @@ client-go のコンポーネントの役割
 2 の処理の関連コンポーネントとして以下がある
 * Reflector・・・ 1と共通
 * Delta FIFO ・・・1と共通
-* Informor・・・1と共通だが、Event Handler を呼び出すことで、pop したオブジェクトの key を取得し、 コントローラの Work Queue に key を追加
+* Informer・・・1と共通だが、Event Handler を呼び出すことで、pop したオブジェクトの key を取得し、 コントローラの Work Queue に key を追加
 
 controller のコンポーネントの主な役割
 1 Work Queue からデータを取り出し、 Reconcile 処理を行う
 
 
-* Event Handler・・・Informor によって呼び出されるコールバック関数
+* Event Handler・・・Informer によって呼び出されるコールバック関数
 * Work Queue・・・Reconcile 処理を行うオブジェクトのキー　を保持する Queue。タイプの違う Queue がある。
 * Process Item・・・Work Queue からのアイテムを処理する関数(コントローラのロジック)で1つ以上存在する。通常、key に対応するオブジェクトを取得して利用する。
 
+### コントローラのテスト
+
+envtest パッケージを利用することでコントローラおよび webhook の簡易的なテストが可能。envtest は etcd と kube-api-server を立ち上げてテスト環境を構築する。
+
+controller-gen が生成するコードでは Ginkgo テストフレームワークを使っている。テストコードはコード生成したときに自動で生成されている。
+
+controllers/suite_test.go
+* BeforeSuite の処理を修正・追加。既存リソースの scheme 追加は scheme.Scheme 使うなら必要ない
+  * 参考：https://github.com/kubernetes/client-go/blob/v0.25.0/kubernetes/scheme/register.go#L143
+* BeforeEach、AfterEach で前処理・後処理を記述
+* Describe にテストを書いていく
+
+注意点
+* 下記参考にあるように、suite_test.go にコード生成時に記述されている k8sClient は API Server にアクセスする client。テスト時にはこの client を利用するのが望ましいようだが、今回 コントローラの処理時に index を利用してフィルタリングをしているため、cache からの取得からじゃないといけないようなので、コントローラの Reconcile 処理時に使う client は mgr.GetClient() を利用する必要があった。
+  * 参考：https://book.kubebuilder.io/cronjob-tutorial/writing-tests.html
+* manager の GetClient() したとき、デフォルトでは cache 利用の client が生成される。以下の Options の NewClient を参照。
+  * 参考：https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.13.0/pkg/manager#New
+  * cache を bypass したい場合は、options の newClient の 関数を置き換えるか、ClientDisableCacheFor を設定すればよさそう。ClientDisableCacheFor がひとまず簡単に見える。
+
+テスト実行
+```
+make test
+```
 
 ### webhook 実装
 
@@ -215,6 +244,15 @@ cert-manager をインストールしておく
 ```
 kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.9.1/cert-manager.yaml
 ```
+
+### webhook のテスト
+
+* webhook_suite_test.go のコードが生成されている
+* envtest.Environment 設定時に webhook のマニフェストのパスを指定する
+* manager 設定時に Host、Port、CertDir を上書きする
+
+### Conversion webhook
+TBD
 ### 既存リソースの Admission Webhook
 
 https://tech.griphone.co.jp/2021/12/12/kubebuilder-coreresource-webhook/
