@@ -1,7 +1,0 @@
-apiVersion: samplecontroller.ginoh.github.io/v1alpha1
-kind: Foo
-metadata:
-  name: foo-sample-webhook-invalid-name
-spec:
-  deploymentName: example-foo-jjtysaez5f8u7v23zymyt9eb5jqhmjoptuxak4e0ym3d7rha56kuxkx851ctz5ygpestioo31sp85cz7oifj8q82n9mzzdl4jz6ny797mucix6czuehc96rsmrg1d6vsdewigwj9xaxsjrioavftwrkgbaqr1wfrfkf91c7sufmol33rrb38jf1jphay33molw959pl1uotuik4g1cyazi7irze6ez79xaen7lyl9ih9lx4d0f
-  replicas: 1

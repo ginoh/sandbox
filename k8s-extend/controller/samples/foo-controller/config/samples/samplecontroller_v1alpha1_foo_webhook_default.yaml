@@ -1,6 +1,0 @@
-apiVersion: samplecontroller.ginoh.github.io/v1alpha1
-kind: Foo
-metadata:
-  name: foo-sample-webhook-default
-spec:
-  deploymentName: example-foo
