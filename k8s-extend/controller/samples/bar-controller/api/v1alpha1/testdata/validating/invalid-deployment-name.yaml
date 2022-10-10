@@ -1,0 +1,15 @@
+apiVersion: samplecontroller.ginoh.github.io/v1alpha1
+kind: Bar
+metadata:
+  labels:
+    app.kubernetes.io/name: bar
+    app.kubernetes.io/instance: bar-sample
+    app.kubernetes.io/part-of: bar-controller
+    app.kuberentes.io/managed-by: kustomize
+    app.kubernetes.io/created-by: bar-controller
+  # 254 characters
+  name: bar-sample-92EexlIgeY1SeEiDBEwBVOEyoCmogMDPeC038KtQJkbnO2zSI9IdXoN3bYNr5RYv87ixOeq2UoKqN6aXKrc78F8pJbyWC7QTfdJJz0LE3gOgif8h8Hn5gqmYjTsjeloweq2u7DMoN118AvIUhDCa8Ei12WCYDZQKat5Bf0zBkoRzurWaceDYz2l9IaxZyDSvwUi9ZNK2rozePvS6VxHTZVPQthgSLrNSajrsdl9nxwHWCzCKh2P
+  namespace: test
+spec:
+  deploymentName: example-bar
+  replicas: 1

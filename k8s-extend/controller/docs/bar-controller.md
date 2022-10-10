@@ -251,8 +251,16 @@ kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/
 * envtest.Environment 設定時に webhook のマニフェストのパスを指定する
 * manager 設定時に Host、Port、CertDir を上書きする
 
+テスト修正時のエラーについて
+* テスト用の yaml を用意したが、create 時に使う yaml に namespace を設定していないと、`an empty namespace may not be set during creation` というエラーがでてしまった
+  * namespace を設定した
+
 ### Conversion webhook
 TBD
-### 既存リソースの Admission Webhook
+### Core の リソースに対する Admission Webhook
 
-https://tech.griphone.co.jp/2021/12/12/kubebuilder-coreresource-webhook/
+参考：
+* https://book.kubebuilder.io/reference/webhook-for-core-types.html
+* https://tech.griphone.co.jp/2021/12/12/kubebuilder-coreresource-webhook/
+
+* import は webhook/admission ではなく、webhook.CustomDefaulter などでよさそう
