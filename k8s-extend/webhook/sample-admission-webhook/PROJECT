@@ -1,0 +1,6 @@
+domain: ginoh.github.io
+layout:
+- go.kubebuilder.io/v3
+projectName: sample-admission-webhook
+repo: github.com/ginoh/sample-admission-webhook
+version: "3"
