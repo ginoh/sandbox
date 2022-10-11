@@ -15,6 +15,7 @@ chmod +x kubebuilder && mv kubebuilder ~/bin/
 ```
 ## 初期化/起動確認
 ```
+mkdir bar-controller && cd bar-controller
 kubebuilder init --domain ginoh.github.io --repo github.com/ginoh/bar-controller
 kubebuilder create api --group samplecontroller --version v1alpha1 --kind Bar
 ```
