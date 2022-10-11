@@ -24,13 +24,17 @@ import (
 	// to ensure that exec-entrypoint and run can make use of them.
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
 
+	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/healthz"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
+
 	//+kubebuilder:scaffold:imports
+
+	v1 "github.com/ginoh/sample-admission-webhook/api/v1"
 )
 
 var (
@@ -85,11 +89,14 @@ func main() {
 		os.Exit(1)
 	}
 
-	if err = (&corev1.Pod{}).SetupWebhookWithManager(mgr); err != nil {
-		setupLog.Error(err, "unable to create webhook", "webhook", "Pod")
+	if err = ctrl.NewWebhookManagedBy(mgr).
+		WithDefaulter(&v1.PodWebhook{}).
+		WithValidator(&v1.PodWebhook{}).
+		For(&corev1.Pod{}).
+		Complete(); err != nil {
+		setupLog.Error(err, "unable to create controller", "webhook", "Pod")
 		os.Exit(1)
 	}
-	//+kubebuilder:scaffold:builder
 
 	if err := mgr.AddHealthzCheck("healthz", healthz.Ping); err != nil {
 		setupLog.Error(err, "unable to set up health check")
