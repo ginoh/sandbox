@@ -1,0 +1,14 @@
+apiVersion: secrets-store.csi.x-k8s.io/v1
+kind: SecretProviderClass
+metadata:
+  name: sample-app-secrets
+  namespace: sscd-test
+spec:
+  provider: gcp
+  parameters:
+    # replace ${PROJECT_ID}
+    secrets: |
+      - resourceName: "projects/development-286509/secrets/sample-key/versions/latest"
+        path: "key.txt"
+      - resourceName: "projects/development-286509/secrets/sample-password/versions/latest"
+        path: "password.txt"

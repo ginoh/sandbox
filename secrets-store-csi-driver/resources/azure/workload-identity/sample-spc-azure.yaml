@@ -1,0 +1,20 @@
+apiVersion: secrets-store.csi.x-k8s.io/v1
+kind: SecretProviderClass
+metadata:
+  name: azure-kvname-wi
+spec:
+  provider: azure
+  parameters:
+    usePodIdentity: "false" # [OPTIONAL] if not provided, will default to "false"
+    clientID: "<client id of the Azure AD Application or user-assigned managed identity to use for workload identity>"
+    keyvaultName: csi-secrets-store # the name of the KeyVault
+    cloudName: "" # [OPTIONAL available for version > 0.0.4] if not provided, azure environment will default to AzurePublicCloud
+    objects: |
+      array:
+        - |
+          objectName: sample-secret
+          objectType: secret            # object types: secret, key or cert. For Key Vault certificates, refer to https://azure.github.io/secrets-store-csi-driver-provider-azure/configurations/getting-certs-and-keys/ for the object type to use
+          objectVersion: ""             # [OPTIONAL] object versions, default to latest if empty
+          objectVersionHistory: 5       # [OPTIONAL] if greater than 1, the number of versions to sync starting at the specified version.
+          filePermission: 0755          # [OPTIONAL] permission for secret file being mounted into the pod, default is 0644 if not specified.
+    tenantId: "tid" # the tenant ID of the KeyVault
