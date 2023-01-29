@@ -1,0 +1,3 @@
+FROM alpine
+
+ENV SAMPLE_VAR=Hello
