@@ -1,36 +1,36 @@
-## 注意点など
-
+## 注意点/わかったこと
 ### minikube
 
-minikube は control-plane 以外で Persistent Volume を使おうとすると permission が 777 ではなく 755 になるよう
+* minikube は デフォルトでは control-plane 以外で Persistent Volume を使おうとすると permission が 777 ではなく 755 になるよう
 https://github.com/kubernetes/minikube/issues/12360
-
-Tekotn workspace(Persistent Volume) に対して、データを保存するときに、non-root なユーザで実行しようとすると
+  * Tekotn workspace(Persistent Volume) に対して、データを保存するときに、non-root なユーザで実行しようとすると
 Permission Error になった
 
-in-cluster の Registry から image の pull をする際、イメージは VM からの pull になるため、(VMのIP):5000 でアクセスする必要がある
-
-クラスタ内での push => registry.kube-system.svc.cluster.local/imageName
-image の pull => (VMのIP):5000/imageName
+* in-cluster の Registry から image の pull をする際、イメージは VM からの pull になるため、(VMのIP):5000 でアクセスする必要がある
+  * クラスタ内での push => registry.kube-system.svc.cluster.local/imageName
+  * image の pull => (VMのIP):5000/imageName
 
 
 ### Buildkit
 
 rootlessモード
+
 https://github.com/moby/buildkit/blob/master/docs/rootless.md
 
 * 環境変数でフラグ(`--oci-worker-no-process-sandbox`)を指定すると、privileged の設定は必要なくなる
 * seccomp, apparmor の無効化は必要 (minikube の場合は気にしなくてもいい？)
-* GKE の COSだと rootless モードうごかなさそう
-  * https://github.com/moby/buildkit/issues/879
+* GKE の COS で rootless モードを動かす場合は以下を参考にする
+  * https://github.com/moby/buildkit/pull/3097
 
 insecure Registry
 
 output フラグで `registry.insecure=true` を指定すると insecure なレジストリにイメージを push できるが、
 export-cache フラグで `type=registry` にする場合、https のアクセスになってしまうよう
+* https://github.com/moby/buildkit/issues/2054
+* https://github.com/moby/buildkit/issues/2044
+
 
 minikube 環境だと、apparmor/seccomp の無効設定しなくても動いた
-
 
 ```
 buildctl-daemonless.sh --debug build \
@@ -43,8 +43,6 @@ buildctl-daemonless.sh --debug build \
 --export-cache type=inline \
 --import-cache type=registry,ref=registry.kube-system.svc.cluster.local/sample-hello-world:buildcache
 ```
-
-
 ###  その他
 
 最終的に関係なかったが後で思い出すためのメモ
@@ -57,7 +55,7 @@ kubeconfig でサービスアカウントトークンが使いたかったが、
 ```
 kubectl -n <namespace> create token <service account name> --duration <duration time (sec)> > sa-token
 // e.g. kubectl -n sample-build-and-deploy create token kubectl-apply --duration 31536000s > sa-token
-// duration は API serverの設定により、最小・最大があるかもしれない。
+// duration は API serverの設定により、最小・最大がありそう
 
 kubectl --kubeconfig sample-kubeconfig config set-cluster tekton-sandbox --insecure-skip-tls-verify=true --server=https://192.168.64.61:8443
 $ kubectl --kubeconfig sample-kubeconfig config set-credentials kubectl-apply --token $(cat sa-token)

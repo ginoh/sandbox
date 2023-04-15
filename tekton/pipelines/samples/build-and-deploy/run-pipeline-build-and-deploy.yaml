@@ -16,6 +16,9 @@ spec:
       value: kubernetes/deployment.yaml
   pipelineRef:
     name: build-and-deploy
+  podTemplate:
+    securityContext:
+      fsGroup: 65532
   taskRunSpecs:
     - pipelineTaskName: deploy
       taskServiceAccountName: kubectl-apply
@@ -23,6 +26,7 @@ spec:
     - name: shared
       volumeClaimTemplate:
         spec:
+          storageClassName: csi-hostpath-sc
           accessModes:
             - ReadWriteMany
           resources:
