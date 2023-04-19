@@ -2,7 +2,7 @@
 
 k8s クラスタ (minikube)
 
-* Tekton で workspace として PersistentVolume を利用する場合、デフォルトではマルチノードに対応していないため、`CSI Hostpath Driver` を使うとよい
+* Tekton で workspace として PersistentVolume を利用する場合、デフォルトではマルチノードに対応していないため、`CSI Hostpath Driver` を使うとよい (minikube > v1.30.0)
   * https://github.com/kubernetes/minikube/issues/12360
   * https://minikube.sigs.k8s.io/docs/tutorials/volume_snapshots_and_csi/
 * Mac で in-cluster の insecure registry を利用するための設定をしておく
