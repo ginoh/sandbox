@@ -1,0 +1,29 @@
+kind: AnalysisTemplate
+apiVersion: argoproj.io/v1alpha1
+metadata:
+  name: curl-check
+spec:
+  args:
+    - name: service-name
+    - name: namespace
+    - name: service-port
+    - name: service-path
+  metrics:
+    - name: curl-job
+      count: 2
+      interval: 5s
+      failureLimit: 1
+      provider:
+        job:
+          spec:
+            template:
+              spec:
+                containers:
+                  - name: curl
+                    image: curlimages/curl
+                    args:
+                      - -f
+                      - -s
+                      - "http://{{ args.service-name }}.{{ args.namespace }}.svc.cluster.local:{{ args.service-port }}{{ args.service-path }}"
+                restartPolicy: Never
+            backoffLimit: 0
