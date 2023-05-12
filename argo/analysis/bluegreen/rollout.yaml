@@ -15,8 +15,8 @@ spec:
     spec:
       containers:
         - name: rollouts-demo
-          image: localhost/argoproj/rollouts-demo:blue
-          # imagePullPolicy: Always
+          image: argoproj/rollouts-demo:blue
+          imagePullPolicy: Always
           ports:
             - containerPort: 8080
   strategy:
@@ -33,3 +33,15 @@ spec:
       # stack as soon as the ReplicaSet are completely ready/available.
       # Rollouts can be resumed using: `kubectl argo rollouts promote ROLLOUT`
       autoPromotionEnabled: false
+      prePromotionAnalysis:
+        templates:
+          - templateName: pre-analysis-test
+        args:
+          - name: service-name
+            value: rollout-bluegreen-preview.default.svc.cluster.local
+      postPromotionAnalysis:
+        templates:
+          - templateName: post-analysis-test
+        args:
+          - name: service-name
+            value: rollout-bluegreen-active.default.svc.cluster.local

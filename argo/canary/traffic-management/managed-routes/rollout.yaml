@@ -1,0 +1,58 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Rollout
+metadata:
+  name: rollouts-managed-routes
+spec:
+  replicas: 4
+  strategy:
+    canary:
+      canaryService: rollouts-demo-canary
+      stableService: rollouts-demo-stable
+      trafficRouting:
+        managedRoutes:
+          - name: set-header-1
+        istio:
+          virtualServices:
+            - name: rollouts-demo-vsvc
+              routes:
+                - primary
+      steps:
+        - setCanaryScale:
+            weight: 25
+        - setHeaderRoute: # enable header based traffic routing where
+            name: set-header-1
+            match:
+              - headerName: Custom-Header1
+                headerValue:
+                  exact: Test
+              - headerName: Custom-Header2
+                headerValue:
+                  prefix: Test
+              - headerName: Custom-Header3
+                headerValue:
+                  regex: Test(.*)
+        - pause: {}
+        # - setHeaderRoute:
+        #     name: set-header-1 # disable header based traffic routing
+        # - pause: {}
+
+  selector:
+    matchLabels:
+      app: rollouts-demo
+  template:
+    metadata:
+      labels:
+        app: rollouts-demo
+        sidecar.istio.io/inject: "true"
+    spec:
+      containers:
+        - name: rollouts-demo
+          image: localhost/argoproj/rollouts-demo:blue
+          ports:
+            - name: http
+              containerPort: 8080
+              protocol: TCP
+          resources:
+            requests:
+              memory: 32Mi
+              cpu: 5m
