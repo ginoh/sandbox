@@ -217,7 +217,7 @@ helm の template のうち `.Capabilities.APIVersions.Has`の部分がうまく
 https://github.com/cilium/cilium/blob/52c383566e7f22882c0e9c0f038cef110ad5c4cf/install/kubernetes/cilium/templates/cilium-gateway-api-class.yaml
 
 原因は https://github.com/helm/helm/issues/10760 にあるように、 `helm template` は Server アクセスしないので、
-Server に後から導入するような CRD の情報はもってないからということのよう。`helm install` の OK そうではある。
+Server に後から導入するような CRD の情報はもってないからということのよう。`helm install` の方は OK そうではある。
 
 ひとまず、一旦生成されるはずの以下を手動で適用した後、gateway, httproute を適用しなおす。
 
