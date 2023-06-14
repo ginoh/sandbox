@@ -141,7 +141,8 @@ $ protoc --go_out=../pkg/grpc --go_opt=paths=source_relative --go-grpc_out=../pk
 ```
 
 - `paths=source_relative` を指定することにより、入力ファイル (.proto) と同じディレクトリ構成で .go ファイルを出力する。
-- `-I PATH` or `--proto_path=PATH` というオプションを指定することで、出力先のディレクトリ階層には `PATH` を含めないようにできる (ここでは使ってない)
+- `-IPATH` or `--proto_path=PATH` というオプションは　 proto ファイルの import path を指定する。`paths=source_relative`とこのオプションが指定されている場合、出力先のディレクトリ階層は `PATH` にあたるものは出力されない。フラグ指定しないとコマンドを起動したディレクトリを見るようだが、一般的には プロジェクトルートを指定しておけばよさそう。(今回は指定していない)
+  - https://protobuf.dev/programming-guides/proto3/#importing
 
 エントリポイントの実装コードをおくディレクトリとファイル(main.go)を作る。今回はビジネスロジックもここに実装する。
 
