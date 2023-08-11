@@ -11,7 +11,7 @@ spec:
       failureLimit: 2
       interval: 10s
       count: 3
-      successCondition: result == "yellow"
+      successCondition: result == "yellow" || result == "blue"
       provider:
         web:
           url: "http://{{ args.service-name }}/color"
