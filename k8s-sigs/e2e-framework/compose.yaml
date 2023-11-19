@@ -1,0 +1,14 @@
+services:
+  e2e:
+    image: dind-go
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      DOCKER_TLS_CERTDIR: ""
+    privileged: true
+    # mount application source code
+    volumes:
+      - type: bind
+        source: .
+        target: /go/src/e2e-framework
