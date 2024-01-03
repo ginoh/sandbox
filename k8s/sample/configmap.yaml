@@ -1,0 +1,53 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sample-configmap-usage
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: sample-app
+  template:
+    metadata:
+      labels:
+        app: sample-app
+    spec:
+      containers:
+        - name: container-1
+          image: ubuntu:latest
+          tty: true
+          env:
+            - name: SAMPLE_PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: sample-configmap
+                  key: port
+        - name: container-2
+          image: ubuntu:latest
+          tty: true
+          envFrom:
+            - configMapRef:
+                name: sample-configmap
+          volumeMounts:
+            - name: sample-volume-1
+              mountPath: /etc/sample-volume-1
+            - name: sample-volume-2
+              mountPath: /etc/sample-volume-2
+      volumes:
+        - name: sample-volume-1
+          configMap:
+            name: sample-configmap
+            items:
+              - key: port
+                path: port.txt
+        - name: sample-volume-2
+          configMap:
+            name: sample-configmap
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: sample-configmap
+data:
+  enable-sample-flag: "true"
+  port: "8080"

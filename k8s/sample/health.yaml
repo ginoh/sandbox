@@ -1,0 +1,29 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: sample-health
+spec:
+  containers:
+    - name: ningx
+      image: nginx:latest
+      ports:
+        - containerPort: 80
+      livenessProbe:
+        httpGet:
+          path: /index.html
+          port: 80
+          scheme: HTTP
+        timeoutSeconds: 1
+        successThreshold: 1
+        failureThreshold: 2
+        initialDelaySeconds: 5
+        periodSeconds: 3
+      readinessProbe:
+        exec:
+          command: ["ls", "/usr/share/nginx/html/50x.html"]
+        timeoutSeconds: 1
+        successThreshold: 1
+        failureThreshold: 2
+        initialDelaySeconds: 5
+        periodSeconds: 3
+  restartPolicy: Always
