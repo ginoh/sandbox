@@ -1,16 +1,16 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: sample-configmap-usage
+  name: sample-configmap
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: sample-app
+      app: sample-configmap-app
   template:
     metadata:
       labels:
-        app: sample-app
+        app: sample-configmap-app
     spec:
       containers:
         - name: container-1
@@ -29,18 +29,18 @@ spec:
             - configMapRef:
                 name: sample-configmap
           volumeMounts:
-            - name: sample-volume-1
-              mountPath: /etc/sample-volume-1
-            - name: sample-volume-2
-              mountPath: /etc/sample-volume-2
+            - name: sample-1
+              mountPath: /etc/sample-volume
+            - name: sample-2
+              mountPath: /etc/sample-volume
       volumes:
-        - name: sample-volume-1
+        - name: sample-1
           configMap:
             name: sample-configmap
             items:
               - key: port
                 path: port.txt
-        - name: sample-volume-2
+        - name: sample-2
           configMap:
             name: sample-configmap
 ---

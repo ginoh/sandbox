@@ -1,0 +1,15 @@
+services:
+  docker:
+    image: docker:dind-rootless
+    privileged: true
+    volumes:
+      - "./certs:/certs"
+
+  client:
+    image: docker:cli
+    tty: true
+    depends_on:
+      - docker
+    volumes:
+      - "./certs/client:/certs/client:ro"
+
